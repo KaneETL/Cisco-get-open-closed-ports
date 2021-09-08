@@ -1,0 +1,39 @@
+---
+  - name: Test
+    hosts: all
+    tasks: 
+      
+      - set_fact: 
+          Enabled_ports_lineprotocol: 0
+          Disabled_ports_lineprotocol: 0   
+       
+         
+      - set_fact: 
+          Disabled_ports_lineprotocol: "{{Disabled_ports_lineprotocol | int + 1}}"
+        when: item.value.lineprotocol == "down"
+        loop: "{{ansible_facts.net_interfaces | dict2items}}"
+      - set_fact: 
+          Enabled_ports_lineprotocol: "{{Enabled_ports_lineprotocol | int + 1}}"
+        when: item.value.lineprotocol == "up"
+        loop: "{{ansible_facts.net_interfaces | dict2items}}"
+
+      - set_fact: 
+         Enabled_ports_operstatus: 0
+         Disabled_ports_operstatus: 0   
+       
+         
+      - set_fact: 
+          Disabled_ports_operstatus: "{{Disabled_ports_operstatus | int + 1}}"
+        when: item.value.operstatus == "administratively down"
+        loop: "{{ansible_facts.net_interfaces | dict2items}}"
+      - set_fact: 
+          Enabled_ports_operstatus: "{{Enabled_ports_operstatus | int + 1}}"
+        when: item.value.operstatus == "up"
+        loop: "{{ansible_facts.net_interfaces | dict2items}}"
+      
+      
+      
+      
+      - lineinfile: 
+          path: output.csv
+          line: "{{inventory_hostname}}, {{Enabled_ports_lineprotocol}}, {{Disabled_ports_lineprotocol}}, {{Enabled_ports_operstatus}}, {{Disabled_ports_operstatus}}"
